@@ -107,6 +107,7 @@ int init_arguments(beast_options * _options)
   _options->compare_file= NULL;
   
   _options->library_prefix = "library";
+  return 0;
 }
 
 

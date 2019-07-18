@@ -32,14 +32,14 @@
  */
 
 typedef struct {
-    char *key;		/* The key string that flags the option in the
+    const char *key;    /* The key string that flags the option in the
 			 * argv array. */
     int type;		/* Indicates option type;  see below. */
-    char *src;		/* Value to be used in setting dst;  usage
+    const char *src;    /* Value to be used in setting dst;  usage
 			 * depends on type. */
-    char *dst;		/* Address of value to be modified;  usage
+    void *dst;          /* Address of value to be modified;  usage
 			 * depends on type. */
-    char *help;		/* Documentation message describing this option. */
+    const char *help;   /* Documentation message describing this option. */
 } ArgvInfo;
 
 /*
@@ -80,10 +80,11 @@ typedef struct {
 #if defined(__cplusplus)
 extern "C" {
 #endif
-
-static void PrintVersion(ArgvInfo *argTable);
+  
 int ParseArgv(int *argcPtr, char **argv,
-                                  ArgvInfo *argTable, int flags);
+                     ArgvInfo *argTable, int flags);
+
+long int ParseLong(const char *argPtr, char **endPtr);
 
 #if defined(__cplusplus)
 }
