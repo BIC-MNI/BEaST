@@ -1,5 +1,5 @@
 # download library for testing
-SET(TESTING_LIBRARY_URL "http://www.bic.mni.mcgill.ca/~vfonov/temp/beast-testing-1.0.tar.gz")
+SET(TESTING_LIBRARY_URL "https://github.com/BIC-MNI/BEaST/releases/download/release-1.20.00/beast-testing-1.0.tar.gz")
 SET(TESTING_LIBRARY_MD5 "610deb21e80f72a232bbeab1267afe2b")
 
 file(DOWNLOAD "${TESTING_LIBRARY_URL}" "${CMAKE_CURRENT_BINARY_DIR}/beast-testing-1.0.tar.gz"  EXPECTED_MD5  "${TESTING_LIBRARY_MD5}" SHOW_PROGRESS )
