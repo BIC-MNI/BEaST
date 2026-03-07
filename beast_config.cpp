@@ -283,8 +283,8 @@ int get_arguments(int argc, char  *argv[] , beast_options * _options)
 
   /* Get arguments */
   if ( ParseArgv(&argc, argv, argTable, 0) || (argc < 4) ) {
-    fprintf(stderr,LICENSE);
-    fprintf(stderr,REFERENCE);
+    fprintf(stderr,"%s",LICENSE);
+    fprintf(stderr,"%s",REFERENCE);
     fprintf(stderr,
             "\nUsage: %s [options] <library dir> <input> <output>\n",
             argv[0]);
