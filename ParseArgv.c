@@ -103,7 +103,13 @@ ParseLong(const char *argPtr, char **endPtr)
  */
 
 int
-ParseArgv(int *argcPtr, char **argv, ArgvInfo *argTable, int flags)
+ParseArgv(int *argcPtr,		/* Number of arguments in argv.  Modified
+				 * to hold # args left in argv at end. */
+          char **argv,		/* Array of arguments.  Modified to hold
+				 * those that couldn't be processed here. */
+          ArgvInfo *argTable,	/* Array of option descriptions */
+          int flags)		/* Or'ed combination of various flag bits,
+				 * such as ARGV_NO_DEFAULTS. */
 {
    ArgvInfo *infoPtr;
 				/* Pointer to the current entry in the
