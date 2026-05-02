@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdint.h>
 #include "basic.h"
 #include "ParseArgv.h"
 
@@ -102,13 +103,12 @@ ParseLong(const char *argPtr, char **endPtr)
  */
 
 int
-ParseArgv(argcPtr, argv, argTable, flags)
-    int *argcPtr;		/* Number of arguments in argv.  Modified
+ParseArgv(int *argcPtr,		/* Number of arguments in argv.  Modified
 				 * to hold # args left in argv at end. */
-    char **argv;		/* Array of arguments.  Modified to hold
+          char **argv,		/* Array of arguments.  Modified to hold
 				 * those that couldn't be processed here. */
-    ArgvInfo *argTable;	/* Array of option descriptions */
-    int flags;			/* Or'ed combination of various flag bits,
+          ArgvInfo *argTable,	/* Array of option descriptions */
+          int flags)		/* Or'ed combination of various flag bits,
 				 * such as ARGV_NO_DEFAULTS. */
 {
    ArgvInfo *infoPtr;
@@ -291,7 +291,8 @@ ParseArgv(argcPtr, argv, argTable, flags)
          }
          break;
       case ARGV_FUNC: {
-         int (*handlerProc)() =  (int (*)())(uintptr_t)infoPtr->src;
+         int (*handlerProc)(void *, const char *, char *) =
+            (int (*)(void *, const char *, char *))(uintptr_t)infoPtr->src;
 		
          if ((*handlerProc)(infoPtr->dst, infoPtr->key,
                             argv[srcIndex])) {
@@ -301,7 +302,8 @@ ParseArgv(argcPtr, argv, argTable, flags)
          break;
       }
       case ARGV_GENFUNC: {
-         int (*handlerProc)() = (int (*)())(uintptr_t)infoPtr->src;
+         int (*handlerProc)(void *, const char *, int, char **) =
+            (int (*)(void *, const char *, int, char **))(uintptr_t)infoPtr->src;
 
          argc = (*handlerProc)(infoPtr->dst, infoPtr->key,
                                argc, argv+srcIndex);
