@@ -11,14 +11,14 @@ IF(NOT MINC_TOOLKIT_BUILD)
   SET(CPACK_PACKAGE_VERSION_MAJOR ${BEAST_PACKAGE_VERSION_MAJOR})
   SET(CPACK_PACKAGE_VERSION_MINOR ${BEAST_PACKAGE_VERSION_MINOR})
   SET(CPACK_PACKAGE_VERSION_PATCH ${BEAST_PACKAGE_VERSION_PATCH})
-  
+
   INCLUDE(CPack)
   CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
-  
+
   if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 OLD)
   endif(COMMAND cmake_policy)
-  
+
   FIND_PACKAGE( LIBMINC )
 
   IF(LIBMINC_FOUND)
@@ -27,7 +27,7 @@ IF(NOT MINC_TOOLKIT_BUILD)
     FIND_PACKAGE( ZLIB )
   ENDIF(LIBMINC_FOUND)
 
-  
+
   OPTION(USE_NIFTI      "Use niftiio library" ON)
   OPTION(USE_DMALLOC    "Use dmalloc library to debug memory leaks" OFF)
 
@@ -39,17 +39,40 @@ IF(NOT MINC_TOOLKIT_BUILD)
   OPTION(MT_SPARSE_BEAST  "Build sparse BEAST (experimental)" OFF)
 
   IF(MT_SPARSE_BEAST)
-    FIND_PACKAGE(OpenBLAS )
+    # Two-mode BLAS+LAPACKE setup, parallel to patch_morphology:
+    #  - Superbuild: parent forwards BLAS_LIBRARIES (or BLAS_MKL_MODE=Config)
+    #    plus SUPERBUILD_CMAKE_DIR; reconstruct BLAS::BLAS and LAPACKE::LAPACKE
+    #    via the shims so SPAMS sees the same vendor the parent picked.
+    #  - Standalone: run find_package(BLAS) ourselves and synthesize
+    #    BLAS::BLAS for older CMake versions that didn't auto-create it.
+    if(BLAS_LIBRARIES OR BLAS_MKL_MODE STREQUAL "Config")
+      include(${SUPERBUILD_CMAKE_DIR}/BLASTargetShim.cmake)
+      include(${SUPERBUILD_CMAKE_DIR}/LAPACKETargetShim.cmake)
+      if(BLAS_MKL_MODE STREQUAL "Config")
+        find_package(MKL CONFIG REQUIRED)
+        blas_create_target_shim("MKL::MKL" "" "")
+      else()
+        blas_create_target_shim("${BLAS_LIBRARIES}" "${BLAS_LINKER_FLAGS}" "${BLAS_INCLUDE_DIRS}")
+      endif()
+      lapacke_create_target_shim("${LAPACKE_LIBRARIES}" "${LAPACKE_INCLUDE_DIRS}" "${HAVE_LAPACKE}")
+    else()
+      set(BLA_VENDOR OpenBLAS) # search for OpenBlas for now
+      find_package(BLAS)
+      if(BLAS_FOUND AND NOT TARGET BLAS::BLAS)
+        add_library(BLAS::BLAS INTERFACE IMPORTED)
+        set_target_properties(BLAS::BLAS PROPERTIES
+          INTERFACE_LINK_LIBRARIES "${BLAS_LIBRARIES}")
+      endif()
+    endif()
   ENDIF(MT_SPARSE_BEAST)
-ELSE()
-    IF(BLAS_FOUND)
-      SET(OpenBLAS_INCLUDE_DIR ${OpenBLAS_INCLUDE_DIRS} CACHE PATH "OpenBLAS Include directory")
-      SET(OpenBLAS_LIBRARY     ${OpenBLAS_LIBRARIES}    CACHE PATH "OpenBLAS library ")
-    ENDIF()
 ENDIF()
 
 
-IF(BLAS_FOUND AND MT_SPARSE_BEAST)
+# SPAMS uses cblas_* (BLAS::BLAS) plus raw Fortran LAPACK (dtrtri_/strtri_).
+# LAPACKE::LAPACKE in our setup transitively pulls in the LAPACK Fortran
+# symbols for the Netlib path; for OpenBLAS/MKL/Accelerate they're bundled in
+# BLAS::BLAS already. Gate BUILD_SPAMS on the BLAS::BLAS target existing.
+IF(MT_SPARSE_BEAST AND TARGET BLAS::BLAS)
   SET(BUILD_SPAMS ON)
   ADD_DEFINITIONS(-DHAVE_OPENBLAS -DUSE_SPAMS)
 ELSE()
@@ -164,17 +187,14 @@ SET(BEAST_SRC
 
 IF(BUILD_SPAMS)
     message("Building SPAMS")
-    INCLUDE_DIRECTORIES(${OpenBLAS_INCLUDE_DIRS})
 
     SET(BEAST_SRC ${BEAST_SRC} ${SPAMS_SRC})
     # test SPAMS
     ADD_EXECUTABLE(spams_test
         spams_test.cpp
     )
-    message("OpenBLAS_LIBRARY=${OpenBLAS_LIBRARY}")
 
-    TARGET_LINK_LIBRARIES( spams_test
-                  ${OpenBLAS_LIBRARIES} )
+    TARGET_LINK_LIBRARIES( spams_test BLAS::BLAS LAPACKE::LAPACKE )
 ENDIF(BUILD_SPAMS)
 
 IF(LIBMINC_FOUND)
@@ -230,8 +250,7 @@ TARGET_LINK_LIBRARIES(beast
     ${LIBMINC_LIBRARIES} )
 
 IF(BUILD_SPAMS)
-  TARGET_LINK_LIBRARIES( beast
-                  ${OpenBLAS_LIBRARIES} )
+  TARGET_LINK_LIBRARIES( beast BLAS::BLAS LAPACKE::LAPACKE )
 ENDIF(BUILD_SPAMS)
 
 ADD_EXECUTABLE(mincbeast
