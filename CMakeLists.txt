@@ -27,10 +27,6 @@ IF(NOT MINC_TOOLKIT_BUILD)
   OPTION(USE_NIFTI      "Use niftiio library" ON)
   OPTION(USE_DMALLOC    "Use dmalloc library to debug memory leaks" OFF)
 
-  IF(USE_NIFTI)
-    SET(NIFTI_ROOT "/usr/local/bic" CACHE PATH "niftiio library base")
-  ENDIF(USE_NIFTI)
-
   OPTION(MT_USE_OPENMP  "Use OpenMP multi-threading" OFF)
   OPTION(MT_SPARSE_BEAST  "Build sparse BEAST (experimental)" OFF)
 
@@ -220,15 +216,14 @@ ENDIF(LIBMINC_FOUND)
 
 
 IF(USE_NIFTI)
+  IF(NOT TARGET NIFTI::niftiio)
+    # nifti_clib ships its own CMake package (NIFTI::niftiio / NIFTI::znz).
+    # Point CMAKE_PREFIX_PATH at its install prefix if it is not on the
+    # default search path.
+    FIND_PACKAGE(NIFTI CONFIG REQUIRED)
+  ENDIF()
   ADD_DEFINITIONS( -DHAVE_NIFTI )
-  LINK_LIBRARIES(niftiio znz z m)
   SET(BEAST_SRC ${BEAST_SRC} niftiio.cpp)
-  LINK_DIRECTORIES(
-    "${NIFTI_ROOT}/lib${LIB_SUFFIX}"
-  )
-  INCLUDE_DIRECTORIES( 
-    "${NIFTI_ROOT}/include/nifti"
-  )
 ENDIF(USE_NIFTI)
 
 
@@ -241,9 +236,13 @@ ADD_LIBRARY(beast  STATIC
   ${BEAST_SRC}
 )
 
-TARGET_LINK_LIBRARIES(beast 
-    ${VOLUME_IO_LIBRARIES} 
+TARGET_LINK_LIBRARIES(beast
+    ${VOLUME_IO_LIBRARIES}
     ${LIBMINC_LIBRARIES} )
+
+IF(USE_NIFTI)
+  TARGET_LINK_LIBRARIES(beast NIFTI::niftiio)
+ENDIF(USE_NIFTI)
 
 IF(BUILD_SPAMS)
   TARGET_LINK_LIBRARIES( beast BLAS::BLAS LAPACKE::LAPACKE )
