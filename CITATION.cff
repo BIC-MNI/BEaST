@@ -1,0 +1,74 @@
+# Citation metadata for BEaST (Citation File Format, https://citation-file-format.github.io/).
+# The author list comes from the commit history and from the history comments in the files.
+
+cff-version: 1.2.0
+title: BEaST
+message: >-
+  If you use this software, please cite both the article from
+  preferred-citation and the software itself.
+type: software
+authors:
+  - given-names: Simon Fristed
+    family-names: Eskildsen
+    orcid: "https://orcid.org/0000-0003-4242-9158"
+  - given-names: Vladimir
+    family-names: Fonov
+    email: vladimir.fonov@gmail.com
+    affiliation: McGill University
+    orcid: "https://orcid.org/0000-0003-3402-7749"
+  - given-names: Pierrick
+    family-names: Coupé
+  - given-names: José V.
+    family-names: Manjón
+  - given-names: Gabriel A.
+    family-names: Devenyi
+    email: gdevenyi@gmail.com
+    affiliation: Douglas Mental Health University Institute
+    orcid: "https://orcid.org/0000-0002-7766-1187"
+  - given-names: Haz-Edine
+    family-names: Assemlal
+  - given-names: Robert D.
+    family-names: Vincent
+repository-code: "https://github.com/BIC-MNI/BEaST"
+abstract: >-
+  mincbeast: C implementation of BEaST (Brain Extraction based on nonlocal
+  Segmentation Technique).
+keywords:
+  - MINC
+  - medical imaging
+  - neuroimaging
+  - MRI
+  - brain extraction
+  - skull stripping
+license: GPL-3.0-or-later
+preferred-citation:
+  type: article
+  title: "BEaST: Brain extraction based on nonlocal segmentation technique"
+  authors:
+    - given-names: Simon F.
+      family-names: Eskildsen
+    - given-names: Pierrick
+      family-names: Coupé
+    - given-names: Vladimir
+      family-names: Fonov
+    - given-names: José V.
+      family-names: Manjón
+    - given-names: Kelvin K.
+      family-names: Leung
+    - given-names: Nicolas
+      family-names: Guizard
+    - given-names: Shafik N.
+      family-names: Wassef
+    - given-names: Lasse Riis
+      family-names: Østergaard
+    - given-names: D. Louis
+      family-names: Collins
+    - name: "The Alzheimer's Disease Neuroimaging Initiative"
+  journal: NeuroImage
+  volume: 59
+  issue: 3
+  start: 2362
+  end: 2373
+  year: 2012
+  month: 2
+  doi: "10.1016/j.neuroimage.2011.09.012"
